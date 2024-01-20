@@ -21,7 +21,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -29,7 +28,6 @@ import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.outlined.Create
 import androidx.compose.material3.Button
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -181,12 +179,16 @@ fun AppUI() {
             OutlinedCard(
                 modifier = Modifier
                     .fillMaxHeight(0.8f)
-                    .fillMaxWidth(0.9f), colors = CardDefaults.outlinedCardColors()
+                    .fillMaxWidth(0.9f)
             ) {
-                Spacer(modifier = Modifier.height(50.dp))
-                Row {
-                    Spacer(modifier = Modifier.width(50.dp))
+                Spacer(modifier = Modifier.height(30.dp))
+                Row(
+                    Modifier
+                        .padding(start = 30.dp, end = 30.dp)
+                        .fillMaxWidth()
+                ) {
                     OutlinedTextField(
+                        modifier = Modifier.fillMaxWidth(),
                         value = title, onValueChange = { newText -> title = newText },
                         label = { Text("标题") },
                         leadingIcon = {
@@ -198,9 +200,13 @@ fun AppUI() {
                     )
                 }
                 Spacer(modifier = Modifier.height(15.dp))
-                Row {
-                    Spacer(modifier = Modifier.width(50.dp))
+                Row(
+                    Modifier
+                        .padding(start = 30.dp, end = 30.dp)
+                        .fillMaxWidth()
+                ) {
                     OutlinedTextField(
+                        modifier = Modifier.fillMaxWidth(),
                         value = content, onValueChange = { newText -> content = newText },
                         label = { Text("内容") },
                         leadingIcon = {
@@ -212,8 +218,25 @@ fun AppUI() {
                     )
                 }
                 Spacer(modifier = Modifier.height(20.dp))
-                Row {
-                    Spacer(modifier = Modifier.width(130.dp))
+                Row(
+                    modifier = Modifier
+                        .padding(start = 30.dp, end = 30.dp)
+                        .fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Button(
+                        onClick = {
+                            sendNotification(context, title.text, content.text)
+                        },
+                        modifier = Modifier.padding(bottom = 10.dp),
+                        enabled = title.text.isNotEmpty() || content.text.isNotEmpty()
+                    ) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.Send,
+                            contentDescription = null
+                        )
+                        Text(text = "清除", fontWeight = FontWeight.Bold)
+                    }
                     Button(
                         onClick = {
                             sendNotification(context, title.text, content.text)
