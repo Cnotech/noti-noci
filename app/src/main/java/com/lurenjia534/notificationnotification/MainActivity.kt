@@ -1,15 +1,7 @@
 package com.lurenjia534.notificationnotification
 
-import android.app.AlertDialog
-import android.app.NotificationChannel
-import android.app.NotificationManager
-import android.app.PendingIntent
-import android.content.BroadcastReceiver
 import android.content.Context
-import android.content.Intent
-import android.net.Uri
 import android.os.Bundle
-import android.provider.Settings
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.Arrangement
@@ -29,7 +21,6 @@ import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.outlined.Create
 import androidx.compose.material3.Button
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedCard
@@ -48,10 +39,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.core.app.NotificationCompat
-import androidx.core.app.NotificationManagerCompat
-import androidx.core.content.ContextCompat
-import androidx.core.content.ContextCompat.startActivity
 import com.lurenjia534.notificationnotification.ui.theme.NotificationNotificationTheme
 
 const val PREF_KEY = "NotificationPrefs"
@@ -75,95 +62,6 @@ class MainActivity : ComponentActivity() {
     }
 }
 
-class NotificationReceiver : BroadcastReceiver() {
-    override fun onReceive(context: Context, intent: Intent) {
-        // 从 SharedPreferences 获取之前的通知内容
-        val sharedPreferences =
-            context.getSharedPreferences(PREF_KEY, Context.MODE_PRIVATE)
-        val title = sharedPreferences.getString(TITLE_KEY, null)
-        val message = sharedPreferences.getString(CONTENT_KEY, null)
-
-        if (title != null && message != null) {
-            sendNotification(context, title, message)
-        }
-
-    }
-}
-
-fun saveNotification(context: Context, title: String, message: String) {
-    val sharedPreferences = context.getSharedPreferences(PREF_KEY, Context.MODE_PRIVATE)
-    val editor = sharedPreferences.edit()
-    editor.putString(TITLE_KEY, title)
-    editor.putString(CONTENT_KEY, message)
-    editor.apply()
-}
-
-fun sendNotification(context: Context, title: String, message: String) {
-
-    saveNotification(context, title, message)
-
-    val deleteIntent = PendingIntent.getBroadcast(
-        context,
-        0,
-        Intent(context, NotificationReceiver::class.java),
-        PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
-    )
-
-    val areNotificationsEnabled = NotificationManagerCompat.from(context).areNotificationsEnabled()
-    if (!areNotificationsEnabled) {
-        AlertDialog.Builder(context)
-            .setTitle("请打开通知权限")
-            .setMessage("需要获取通知权限才能正常运行，点击确定跳转到设置界面")
-            .setPositiveButton("确定") { _, _ ->
-                val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
-                intent.data = Uri.fromParts("package", context.packageName, null)
-                startActivity(context, intent, null)
-            }
-            .setNegativeButton("取消", null)
-            .show()
-        return
-    }
-
-    val notificationManager = ContextCompat.getSystemService(
-        context, NotificationManager::class.java
-    ) as NotificationManager
-
-    // 创建一个通知通道
-    val channelId = "Notice_Memo"
-    val channelName = "Notice_Memo"
-    val channel = NotificationChannel(
-        channelId, channelName, NotificationManager.IMPORTANCE_HIGH
-    )
-    notificationManager.createNotificationChannel(channel)
-
-    // 配置通知点击意图
-    val notificationIntent = Intent(context, MainActivity::class.java)
-    val contentIntent = PendingIntent.getActivity(
-        context, 0, notificationIntent,
-        PendingIntent.FLAG_IMMUTABLE
-    )
-
-    // 构建通知
-    val notification = NotificationCompat.Builder(context, channelId)
-        .setContentTitle(title)
-        .setContentText(message)
-        .setSmallIcon(R.drawable.ic_launcher_foreground) // 设置通知图标
-        .setPriority(NotificationCompat.PRIORITY_HIGH) // 设置优先级
-        .setOngoing(true)
-        .setContentIntent(contentIntent)
-        .setDeleteIntent(deleteIntent)
-        .build()
-
-    // 显示通知
-    notificationManager.notify(1001, notification)
-
-    // 返回桌面
-    Intent(Intent.ACTION_MAIN).apply {
-        addCategory(Intent.CATEGORY_HOME)
-    }.let { startActivity(context, it, null) }
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 @Preview
 fun AppUI() {
@@ -171,8 +69,8 @@ fun AppUI() {
     val context = LocalContext.current
     val sharedPreferences =
         context.getSharedPreferences(PREF_KEY, Context.MODE_PRIVATE)
-    val titleStr = sharedPreferences.getString(TITLE_KEY, "") ?: ""
-    val contentStr = sharedPreferences.getString(CONTENT_KEY, "") ?: ""
+    val titleStr = sharedPreferences.getString(TITLE_KEY, null) ?: ""
+    val contentStr = sharedPreferences.getString(CONTENT_KEY, null) ?: ""
 
     Column(
         modifier = Modifier.verticalScroll(rememberScrollState()),
