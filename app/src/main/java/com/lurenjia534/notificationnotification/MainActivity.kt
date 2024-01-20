@@ -155,6 +155,11 @@ fun sendNotification(context: Context, title: String, message: String) {
 
     // 显示通知
     notificationManager.notify(1001, notification)
+
+    // 返回桌面
+    Intent(Intent.ACTION_MAIN).apply {
+        addCategory(Intent.CATEGORY_HOME)
+    }.let { startActivity(context, it, null) }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
