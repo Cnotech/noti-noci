@@ -29,6 +29,8 @@ private fun clear(context: Context) {
 
 fun clearNotification(context: Context) {
     clear(context)
+    val notificationManager = NotificationManagerCompat.from(context)
+    notificationManager.cancelAll()
     backHome(context)
 }
 
