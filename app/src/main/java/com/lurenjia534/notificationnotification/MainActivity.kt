@@ -57,6 +57,10 @@ import androidx.core.content.ContextCompat
 import androidx.core.content.ContextCompat.startActivity
 import com.lurenjia534.notificationnotification.ui.theme.NotificationNotificationTheme
 
+const val PREF_KEY = "NotificationPrefs"
+const val TITLE_KEY = "title"
+const val CONTENT_KEY = "content"
+
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -78,9 +82,9 @@ class NotificationReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
         // 从 SharedPreferences 获取之前的通知内容
         val sharedPreferences =
-            context.getSharedPreferences("NotificationPrefs", Context.MODE_PRIVATE)
-        val title = sharedPreferences.getString("title", null)
-        val message = sharedPreferences.getString("message", null)
+            context.getSharedPreferences(PREF_KEY, Context.MODE_PRIVATE)
+        val title = sharedPreferences.getString(TITLE_KEY, null)
+        val message = sharedPreferences.getString(CONTENT_KEY, null)
 
         if (title != null && message != null) {
             sendNotification(context, message, title)
@@ -90,14 +94,14 @@ class NotificationReceiver : BroadcastReceiver() {
 }
 
 fun saveNotification(context: Context, title: String, message: String) {
-    val sharedPreferences = context.getSharedPreferences("NotificationPrefs", Context.MODE_PRIVATE)
+    val sharedPreferences = context.getSharedPreferences(PREF_KEY, Context.MODE_PRIVATE)
     val editor = sharedPreferences.edit()
-    editor.putString("title", title)
-    editor.putString("message", message)
+    editor.putString(TITLE_KEY, title)
+    editor.putString(CONTENT_KEY, message)
     editor.apply()
 }
 
-fun sendNotification(context: Context, message: String, title: String) {
+fun sendNotification(context: Context, title: String, message: String) {
 
     saveNotification(context, title, message)
 
@@ -153,14 +157,21 @@ fun sendNotification(context: Context, message: String, title: String) {
 @Composable
 @Preview
 fun AppUI() {
+    // 获取之前的内容
+    val context = LocalContext.current
+    val sharedPreferences =
+        context.getSharedPreferences(PREF_KEY, Context.MODE_PRIVATE)
+    val titleStr = sharedPreferences.getString(TITLE_KEY, "") ?: ""
+    val contentStr = sharedPreferences.getString(CONTENT_KEY, "") ?: ""
+
     Column(
         modifier = Modifier.verticalScroll(rememberScrollState()),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         Column {
-            var text by remember { mutableStateOf(TextFieldValue("")) }
-            var text2 by remember { mutableStateOf(TextFieldValue("")) }
+            var title by remember { mutableStateOf(TextFieldValue(titleStr)) }
+            var content by remember { mutableStateOf(TextFieldValue(contentStr)) }
             OutlinedCard(
                 modifier = Modifier
                     .fillMaxHeight(0.8f)
@@ -170,7 +181,7 @@ fun AppUI() {
                 Row {
                     Spacer(modifier = Modifier.width(50.dp))
                     OutlinedTextField(
-                        value = text2, onValueChange = { newText -> text2 = newText },
+                        value = title, onValueChange = { newText -> title = newText },
                         label = { Text("标题") },
                         leadingIcon = {
                             Icon(
@@ -188,7 +199,7 @@ fun AppUI() {
                 Row {
                     Spacer(modifier = Modifier.width(50.dp))
                     OutlinedTextField(
-                        value = text, onValueChange = { newText -> text = newText },
+                        value = content, onValueChange = { newText -> content = newText },
                         label = { Text("内容") },
                         leadingIcon = {
                             Icon(
@@ -205,13 +216,12 @@ fun AppUI() {
                 Spacer(modifier = Modifier.height(20.dp))
                 Row {
                     Spacer(modifier = Modifier.width(130.dp))
-                    val context = LocalContext.current
                     Button(
                         onClick = {
-                            sendNotification(context, text.text, text2.text)
+                            sendNotification(context, title.text, content.text)
                         },
                         modifier = Modifier.padding(bottom = 10.dp),
-                        enabled = text.text.isNotEmpty() || text2.text.isNotEmpty()
+                        enabled = title.text.isNotEmpty() || content.text.isNotEmpty()
                     ) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.Send,
