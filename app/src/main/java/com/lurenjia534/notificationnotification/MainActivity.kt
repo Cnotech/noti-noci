@@ -1,16 +1,18 @@
 package com.lurenjia534.notificationnotification
 
+import android.app.AlertDialog
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
+import android.provider.Settings
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -49,9 +51,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.core.app.NotificationCompat
+import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
+import androidx.core.content.ContextCompat.startActivity
 import com.lurenjia534.notificationnotification.ui.theme.NotificationNotificationTheme
 
 class MainActivity : ComponentActivity() {
@@ -105,13 +108,28 @@ fun sendNotification(context: Context, message: String, title: String) {
         PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
     )
 
+    val areNotificationsEnabled = NotificationManagerCompat.from(context).areNotificationsEnabled()
+    if(!areNotificationsEnabled){
+        AlertDialog.Builder(context)
+            .setTitle("请打开通知权限")
+            .setMessage("通知通知获取通知权限才能正常运行，点击确定跳转到设置界面")
+            .setPositiveButton("确定") { _, _ ->
+                val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
+                intent.data = Uri.fromParts("package", context.packageName, null)
+                startActivity(context,intent,null)
+            }
+            .setNegativeButton("取消", null)
+            .show()
+        return
+    }
+
     val notificationManager = ContextCompat.getSystemService(
         context, NotificationManager::class.java
     ) as NotificationManager
 
     // 创建一个通知通道（在 Android Oreo 及以上版本中必须这样做）
     val channelId = "Notice_Memo"
-    val channelName = "cno_Notice_Memo"
+    val channelName = "Notice_Memo"
     val channel = NotificationChannel(
         channelId, channelName, NotificationManager.IMPORTANCE_HIGH
     )
@@ -135,38 +153,12 @@ fun sendNotification(context: Context, message: String, title: String) {
 @Composable
 @Preview
 fun AppUI() {
-
-
     Column(
         modifier = Modifier.verticalScroll(rememberScrollState()),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         Column {
-            OutlinedCard(
-                modifier = Modifier
-                    .fillMaxWidth(0.9f)
-                // .fillMaxHeight(0.9f)
-            ) {
-                Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxSize()) {
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-
-                        Text(
-                            text = "👏 Welcome back Cno!",
-                            fontSize = 25.sp,
-                            fontWeight = FontWeight.Bold
-                        )
-                        Spacer(modifier = Modifier.height(10.dp))
-                        Text(
-                            text = "❤ Is everything okay? Right!",
-                            fontSize = 15.sp,
-                            fontWeight = FontWeight.Light
-                        )
-                        Spacer(modifier = Modifier.height(10.dp))
-                    }
-                }
-            }
-            Spacer(modifier = Modifier.height(50.dp))
             var text by remember { mutableStateOf(TextFieldValue("")) }
             var text2 by remember { mutableStateOf(TextFieldValue("")) }
             OutlinedCard(
@@ -179,7 +171,7 @@ fun AppUI() {
                     Spacer(modifier = Modifier.width(50.dp))
                     OutlinedTextField(
                         value = text2, onValueChange = { newText -> text2 = newText },
-                        label = { Text("message header") },
+                        label = { Text("标题") },
                         leadingIcon = {
                             Icon(
                                 imageVector = Icons.Outlined.Create,
@@ -197,7 +189,7 @@ fun AppUI() {
                     Spacer(modifier = Modifier.width(50.dp))
                     OutlinedTextField(
                         value = text, onValueChange = { newText -> text = newText },
-                        label = { Text("notification") },
+                        label = { Text("内容") },
                         leadingIcon = {
                             Icon(
                                 imageVector = Icons.Default.Notifications,
@@ -222,7 +214,7 @@ fun AppUI() {
                     imageVector = Icons.AutoMirrored.Filled.Send,
                     contentDescription = null
                 )
-                Text(text = "Send!", fontWeight = FontWeight.Bold)
+                Text(text = "确定", fontWeight = FontWeight.Bold)
             }
             }
         }
