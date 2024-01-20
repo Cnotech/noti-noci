@@ -137,13 +137,21 @@ fun sendNotification(context: Context, title: String, message: String) {
     )
     notificationManager.createNotificationChannel(channel)
 
+    // 配置通知点击意图
+    val notificationIntent = Intent(context, MainActivity::class.java)
+    val contentIntent = PendingIntent.getActivity(
+        context, 0, notificationIntent,
+        PendingIntent.FLAG_IMMUTABLE
+    )
+
     // 构建通知
     val notification = NotificationCompat.Builder(context, channelId)
         .setContentTitle(title)
         .setContentText(message)
         .setSmallIcon(R.drawable.ic_launcher_foreground) // 设置通知图标
         .setPriority(NotificationCompat.PRIORITY_HIGH) // 设置优先级
-        .setOngoing(true) // 使通知成为持久性通知
+        .setOngoing(true)
+        .setContentIntent(contentIntent)
         .setDeleteIntent(deleteIntent)
         .build()
 
