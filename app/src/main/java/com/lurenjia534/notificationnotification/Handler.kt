@@ -12,7 +12,7 @@ import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
 
-fun saveNotification(context: Context, title: String, message: String) {
+private fun save(context: Context, title: String, message: String) {
     val sharedPreferences = context.getSharedPreferences(PREF_KEY, Context.MODE_PRIVATE)
     val editor = sharedPreferences.edit()
     editor.putString(TITLE_KEY, title)
@@ -20,9 +20,21 @@ fun saveNotification(context: Context, title: String, message: String) {
     editor.apply()
 }
 
+private fun clear(context: Context) {
+    val sharedPreferences = context.getSharedPreferences(PREF_KEY, Context.MODE_PRIVATE)
+    val editor = sharedPreferences.edit()
+    editor.clear()
+    editor.apply()
+}
+
+fun clearNotification(context: Context) {
+    clear(context)
+    backHome(context)
+}
+
 fun sendNotification(context: Context, title: String, message: String) {
 
-    saveNotification(context, title, message)
+    save(context, title, message)
 
     val deleteIntent = PendingIntent.getBroadcast(
         context,
@@ -80,7 +92,5 @@ fun sendNotification(context: Context, title: String, message: String) {
     notificationManager.notify(1001, notification)
 
     // 返回桌面
-    Intent(Intent.ACTION_MAIN).apply {
-        addCategory(Intent.CATEGORY_HOME)
-    }.let { ContextCompat.startActivity(context, it, null) }
+    backHome(context)
 }

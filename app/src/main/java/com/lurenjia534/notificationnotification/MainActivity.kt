@@ -130,7 +130,9 @@ fun AppUI() {
                 ) {
                     Button(
                         onClick = {
-                            sendNotification(context, title.text, content.text)
+                            title = TextFieldValue("")
+                            content = TextFieldValue("")
+                            clearNotification(context)
                         },
                         modifier = Modifier.padding(bottom = 10.dp),
                         enabled = title.text.isNotEmpty() || content.text.isNotEmpty()
