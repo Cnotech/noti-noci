@@ -85,7 +85,7 @@ class NotificationReceiver : BroadcastReceiver() {
         val message = sharedPreferences.getString(CONTENT_KEY, null)
 
         if (title != null && message != null) {
-            sendNotification(context, message, title)
+            sendNotification(context, title, message)
         }
 
     }
