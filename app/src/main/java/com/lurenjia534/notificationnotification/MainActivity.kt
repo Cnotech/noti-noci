@@ -25,6 +25,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Send
+import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.outlined.Create
 import androidx.compose.material3.Button
@@ -198,7 +199,7 @@ fun AppUI() {
                         label = { Text("标题") },
                         leadingIcon = {
                             Icon(
-                                imageVector = Icons.Outlined.Create,
+                                imageVector = Icons.Default.Notifications,
                                 contentDescription = null
                             )
                         },
@@ -216,7 +217,7 @@ fun AppUI() {
                         label = { Text("内容") },
                         leadingIcon = {
                             Icon(
-                                imageVector = Icons.Default.Notifications,
+                                imageVector = Icons.Outlined.Create,
                                 contentDescription = null
                             )
                         },
@@ -237,7 +238,7 @@ fun AppUI() {
                         enabled = title.text.isNotEmpty() || content.text.isNotEmpty()
                     ) {
                         Icon(
-                            imageVector = Icons.AutoMirrored.Filled.Send,
+                            imageVector = Icons.Filled.Clear,
                             contentDescription = null
                         )
                         Text(text = "清除", fontWeight = FontWeight.Bold)
