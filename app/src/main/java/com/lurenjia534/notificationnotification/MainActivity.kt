@@ -35,7 +35,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -188,11 +187,6 @@ fun AppUI() {
                                 contentDescription = null
                             )
                         },
-//                        colors = TextFieldDefaults.outlinedTextFieldColors(
-//                            focusedBorderColor = Color.Gray, // 获得焦点时的边框颜色
-//                            unfocusedBorderColor = Color.Gray // 未获得焦点时的边框颜色
-//                        )
-                        colors = OutlinedTextFieldDefaults.colors()
                     )
                 }
                 Spacer(modifier = Modifier.height(15.dp))
@@ -207,7 +201,6 @@ fun AppUI() {
                                 contentDescription = null
                             )
                         },
-                        colors = OutlinedTextFieldDefaults.colors()
                     )
                 }
                 Spacer(modifier = Modifier.height(20.dp))
