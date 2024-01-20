@@ -109,14 +109,14 @@ fun sendNotification(context: Context, message: String, title: String) {
     )
 
     val areNotificationsEnabled = NotificationManagerCompat.from(context).areNotificationsEnabled()
-    if(!areNotificationsEnabled){
+    if (!areNotificationsEnabled) {
         AlertDialog.Builder(context)
             .setTitle("请打开通知权限")
-            .setMessage("通知通知获取通知权限才能正常运行，点击确定跳转到设置界面")
+            .setMessage("需要获取通知权限才能正常运行，点击确定跳转到设置界面")
             .setPositiveButton("确定") { _, _ ->
                 val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
                 intent.data = Uri.fromParts("package", context.packageName, null)
-                startActivity(context,intent,null)
+                startActivity(context, intent, null)
             }
             .setNegativeButton("取消", null)
             .show()
@@ -127,7 +127,7 @@ fun sendNotification(context: Context, message: String, title: String) {
         context, NotificationManager::class.java
     ) as NotificationManager
 
-    // 创建一个通知通道（在 Android Oreo 及以上版本中必须这样做）
+    // 创建一个通知通道
     val channelId = "Notice_Memo"
     val channelName = "Notice_Memo"
     val channel = NotificationChannel(
@@ -206,18 +206,21 @@ fun AppUI() {
                 Row {
                     Spacer(modifier = Modifier.width(130.dp))
                     val context = LocalContext.current
-                    Button(onClick = {
-                        sendNotification(context, text.text, text2.text)
-                    },
-                 modifier = Modifier.padding(bottom = 10.dp)) {
-                Icon(
-                    imageVector = Icons.AutoMirrored.Filled.Send,
-                    contentDescription = null
-                )
-                Text(text = "确定", fontWeight = FontWeight.Bold)
-            }
+                    Button(
+                        onClick = {
+                            sendNotification(context, text.text, text2.text)
+                        },
+                        modifier = Modifier.padding(bottom = 10.dp),
+                        enabled = text.text.isNotEmpty() || text2.text.isNotEmpty()
+                    ) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.Send,
+                            contentDescription = null
+                        )
+                        Text(text = "确定", fontWeight = FontWeight.Bold)
+                    }
+                }
             }
         }
     }
-}
 }
