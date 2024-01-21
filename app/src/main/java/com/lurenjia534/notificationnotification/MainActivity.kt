@@ -56,7 +56,7 @@ class MainActivity : ComponentActivity() {
             NotificationNotificationTheme {
                 Surface(
                     modifier = Modifier.fillMaxSize(),
-                    color = MaterialTheme.colorScheme.primary
+                    color = MaterialTheme.colorScheme.background
                 ) {
                     AppUI()
                 }
