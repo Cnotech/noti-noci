@@ -12,15 +12,13 @@ import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
 
-const val DEFAULT_COLOR = 0xff445e91
-
 private val LightColorScheme = lightColorScheme(
-    primary = Color(DEFAULT_COLOR),
-    background = Color(DEFAULT_COLOR),
+    primary = ThemeColor,
+    background = ThemeColor,
 )
 
 private val DarkColorScheme = darkColorScheme(
-    primary = Color(DEFAULT_COLOR),
+    primary = ThemeColor,
     background = Color.Black
 )
 
