@@ -27,6 +27,12 @@ private fun clear(context: Context) {
     editor.apply()
 }
 
+fun read(context: Context, key: String): String {
+    val sharedPreferences =
+        context.getSharedPreferences(PREF_KEY, Context.MODE_PRIVATE)
+    return sharedPreferences.getString(key, null) ?: ""
+}
+
 fun clearNotification(context: Context) {
     clear(context)
     val notificationManager = NotificationManagerCompat.from(context)
@@ -35,16 +41,10 @@ fun clearNotification(context: Context) {
 }
 
 fun sendNotification(context: Context, title: String, message: String) {
-
+    // 保存通知内容
     save(context, title, message)
 
-    val deleteIntent = PendingIntent.getBroadcast(
-        context,
-        0,
-        Intent(context, NotificationReceiver::class.java),
-        PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
-    )
-
+    // 检查通知权限是否开启
     val areNotificationsEnabled = NotificationManagerCompat.from(context).areNotificationsEnabled()
     if (!areNotificationsEnabled) {
         AlertDialog.Builder(context)
@@ -77,6 +77,14 @@ fun sendNotification(context: Context, title: String, message: String) {
     val contentIntent = PendingIntent.getActivity(
         context, 0, notificationIntent,
         PendingIntent.FLAG_IMMUTABLE
+    )
+
+    // 配置通知删除意图
+    val deleteIntent = PendingIntent.getBroadcast(
+        context,
+        0,
+        Intent(context, NotificationReceiver::class.java),
+        PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
     )
 
     // 构建通知

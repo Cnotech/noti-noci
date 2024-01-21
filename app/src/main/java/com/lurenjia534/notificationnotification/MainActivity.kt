@@ -1,6 +1,5 @@
 package com.lurenjia534.notificationnotification
 
-import android.content.Context
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -65,21 +64,15 @@ class MainActivity : ComponentActivity() {
 @Composable
 @Preview
 fun AppUI() {
-    // 获取之前的内容
     val context = LocalContext.current
-    val sharedPreferences =
-        context.getSharedPreferences(PREF_KEY, Context.MODE_PRIVATE)
-    val titleStr = sharedPreferences.getString(TITLE_KEY, null) ?: ""
-    val contentStr = sharedPreferences.getString(CONTENT_KEY, null) ?: ""
-
     Column(
         modifier = Modifier.verticalScroll(rememberScrollState()),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         Column {
-            var title by remember { mutableStateOf(TextFieldValue(titleStr)) }
-            var content by remember { mutableStateOf(TextFieldValue(contentStr)) }
+            var title by remember { mutableStateOf(TextFieldValue(read(context, TITLE_KEY))) }
+            var content by remember { mutableStateOf(TextFieldValue(read(context, CONTENT_KEY))) }
             OutlinedCard(
                 modifier = Modifier
                     .fillMaxHeight(0.8f)
