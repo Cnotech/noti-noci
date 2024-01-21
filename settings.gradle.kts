@@ -13,6 +13,6 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "notification notification"
+rootProject.name = "Noti Noci"
 include(":app")
  
