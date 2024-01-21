@@ -12,6 +12,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -34,10 +36,13 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.lurenjia534.notificationnotification.ui.theme.NotificationNotificationTheme
 
 const val PREF_KEY = "NotificationPrefs"
@@ -49,7 +54,6 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setContent {
             NotificationNotificationTheme {
-                // A surface container using the 'background' color from the theme
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.primary
@@ -70,6 +74,19 @@ fun AppUI() {
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
+        Column(
+            modifier = Modifier
+                .height(30.dp)
+                .fillMaxWidth(),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text(
+                text = "Noti Noci",
+                style = TextStyle(fontSize = 30.sp),
+                fontFamily = FontFamily.SansSerif
+            )
+        }
+        Spacer(modifier = Modifier.height(60.dp))
         Column {
             var title by remember { mutableStateOf(TextFieldValue(read(context, TITLE_KEY))) }
             var content by remember { mutableStateOf(TextFieldValue(read(context, CONTENT_KEY))) }
@@ -114,7 +131,7 @@ fun AppUI() {
                         },
                     )
                 }
-                Spacer(modifier = Modifier.height(20.dp))
+                Spacer(modifier = Modifier.height(15.dp))
                 Row(
                     modifier = Modifier
                         .padding(start = 30.dp, end = 30.dp)
@@ -127,29 +144,42 @@ fun AppUI() {
                             content = TextFieldValue("")
                             clearNotification(context)
                         },
-                        modifier = Modifier.padding(bottom = 10.dp),
                         enabled = title.text.isNotEmpty() || content.text.isNotEmpty()
                     ) {
-                        Icon(
-                            imageVector = Icons.Filled.Clear,
-                            contentDescription = null
-                        )
-                        Text(text = "清除", fontWeight = FontWeight.Bold)
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.Center
+                        ) {
+                            Icon(
+                                imageVector = Icons.Filled.Clear,
+                                contentDescription = null,
+                                modifier = Modifier.size(18.dp)
+                            )
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Text(text = "清除", fontWeight = FontWeight.Bold)
+                        }
                     }
                     Button(
                         onClick = {
                             sendNotification(context, title.text, content.text)
                         },
-                        modifier = Modifier.padding(bottom = 10.dp),
                         enabled = title.text.isNotEmpty() || content.text.isNotEmpty()
                     ) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.Send,
-                            contentDescription = null
-                        )
-                        Text(text = "确定", fontWeight = FontWeight.Bold)
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.Center
+                        ) {
+                            Icon(
+                                imageVector = Icons.AutoMirrored.Filled.Send,
+                                contentDescription = null,
+                                modifier = Modifier.size(18.dp)
+                            )
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Text(text = "确定", fontWeight = FontWeight.Bold)
+                        }
                     }
                 }
+                Spacer(modifier = Modifier.height(20.dp))
             }
         }
     }
