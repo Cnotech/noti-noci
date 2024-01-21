@@ -1,7 +1,6 @@
-Noti Noci
+# Noti Noci
 
-A Custom Notification Notes Software, as my first Kotlin Android project, using MD3 and SDK 34 (
-Android14)
+A custom notification notes application, as my first Kotlin Android project
 
 Special Thanks
 
