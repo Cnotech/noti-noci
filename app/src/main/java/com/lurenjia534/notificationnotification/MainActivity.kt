@@ -82,6 +82,7 @@ fun AppUI() {
         ) {
             Text(
                 text = "Noti Noci",
+                fontWeight = FontWeight.Bold,
                 style = TextStyle(fontSize = 30.sp),
                 fontFamily = FontFamily.SansSerif
             )
