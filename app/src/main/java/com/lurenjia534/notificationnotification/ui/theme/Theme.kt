@@ -19,7 +19,8 @@ private val LightColorScheme = lightColorScheme(
 
 private val DarkColorScheme = darkColorScheme(
     primary = ThemeColor,
-    background = Color.Black
+    background = Color.Black,
+    onPrimary = Color.White,
 )
 
 @Composable
