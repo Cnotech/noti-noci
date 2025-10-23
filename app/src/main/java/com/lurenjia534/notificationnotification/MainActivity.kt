@@ -76,7 +76,7 @@ fun AppUI() {
     ) {
         Column(
             modifier = Modifier
-                .height(30.dp)
+                .height(42.dp)
                 .fillMaxWidth(),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
@@ -144,8 +144,7 @@ fun AppUI() {
                             title = TextFieldValue("")
                             content = TextFieldValue("")
                             clearNotification(context)
-                        },
-                        enabled = title.text.isNotEmpty() || content.text.isNotEmpty()
+                        }
                     ) {
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
