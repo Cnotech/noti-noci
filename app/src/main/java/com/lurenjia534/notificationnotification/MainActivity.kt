@@ -4,6 +4,7 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -22,21 +23,27 @@ import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.outlined.Create
 import androidx.compose.material3.Button
+import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.AbsoluteAlignment
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
@@ -45,6 +52,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.lurenjia534.notificationnotification.ui.theme.NotificationNotificationTheme
+import kotlinx.coroutines.launch
 
 const val PREF_KEY = "NotificationPrefs"
 const val TITLE_KEY = "title"
@@ -71,8 +79,48 @@ class MainActivity : ComponentActivity() {
 fun AppUI() {
     val context = LocalContext.current
     val focusManager = LocalFocusManager.current
+    val historyStore = remember(context) { NotificationHistory(context) }
+    var history by remember(historyStore) { mutableStateOf(historyStore.read()) }
+    val drawerState = rememberDrawerState(DrawerValue.Closed)
+    val scope = rememberCoroutineScope()
+
+    HistoryDrawer(
+        drawerState = drawerState,
+        history = history,
+        onClear = {
+            historyStore.clear()
+            history = emptyList()
+        },
+    ) {
+        Box(modifier = Modifier.fillMaxSize()) {
+            NotificationForm { title, content ->
+                historyStore.add(title, content)
+                sendNotification(context, title, content)
+            }
+            IconButton(
+                modifier = Modifier
+                    .align(AbsoluteAlignment.TopRight)
+                    .padding(8.dp),
+                onClick = {
+                    focusManager.clearFocus()
+                    history = historyStore.read()
+                    scope.launch { drawerState.open() }
+                },
+            ) {
+                Icon(painterResource(R.drawable.ic_history), contentDescription = "历史")
+            }
+        }
+    }
+}
+
+@Composable
+private fun NotificationForm(onSubmit: (String, String) -> Unit) {
+    val context = LocalContext.current
+    val focusManager = LocalFocusManager.current
     Column(
-        modifier = Modifier.verticalScroll(rememberScrollState()),
+        modifier = Modifier
+            .fillMaxSize()
+            .verticalScroll(rememberScrollState()),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
@@ -80,7 +128,7 @@ fun AppUI() {
             modifier = Modifier
                 .height(42.dp)
                 .fillMaxWidth(),
-            horizontalAlignment = Alignment.CenterHorizontally
+            horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             Text(
                 text = "Noti Noci",
@@ -165,7 +213,7 @@ fun AppUI() {
                     Button(
                         onClick = {
                             focusManager.clearFocus()
-                            sendNotification(context, title.text, content.text)
+                            onSubmit(title.text, content.text)
                         },
                         enabled = title.text.isNotEmpty() || content.text.isNotEmpty()
                     ) {
