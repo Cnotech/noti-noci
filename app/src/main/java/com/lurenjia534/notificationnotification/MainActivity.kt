@@ -36,6 +36,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
@@ -69,6 +70,7 @@ class MainActivity : ComponentActivity() {
 @Preview
 fun AppUI() {
     val context = LocalContext.current
+    val focusManager = LocalFocusManager.current
     Column(
         modifier = Modifier.verticalScroll(rememberScrollState()),
         verticalArrangement = Arrangement.Center,
@@ -141,6 +143,7 @@ fun AppUI() {
                 ) {
                     Button(
                         onClick = {
+                            focusManager.clearFocus()
                             title = TextFieldValue("")
                             content = TextFieldValue("")
                             clearNotification(context)
@@ -161,6 +164,7 @@ fun AppUI() {
                     }
                     Button(
                         onClick = {
+                            focusManager.clearFocus()
                             sendNotification(context, title.text, content.text)
                         },
                         enabled = title.text.isNotEmpty() || content.text.isNotEmpty()
