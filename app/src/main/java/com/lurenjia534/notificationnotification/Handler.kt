@@ -12,6 +12,8 @@ import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
 
+internal const val NOTE_NOTIFICATION_ID = 1001
+
 private fun save(context: Context, title: String, message: String) {
     val sharedPreferences = context.getSharedPreferences(PREF_KEY, Context.MODE_PRIVATE)
     val editor = sharedPreferences.edit()
@@ -37,6 +39,7 @@ fun clearNotification(context: Context) {
     clear(context)
     val notificationManager = NotificationManagerCompat.from(context)
     notificationManager.cancelAll()
+    cancelNotificationRefresh(context)
     backHome(context)
 }
 
@@ -99,7 +102,8 @@ fun sendNotification(context: Context, title: String, message: String) {
         .build()
 
     // 显示通知
-    notificationManager.notify(1001, notification)
+    notificationManager.notify(NOTE_NOTIFICATION_ID, notification)
+    scheduleNotificationRefresh(context)
 
     // 返回桌面
     backHome(context)
