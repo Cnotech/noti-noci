@@ -15,12 +15,20 @@ internal class NotificationHistory(context: Context) {
 
     fun add(title: String, content: String) {
         val entries = readEntries()
-        entries.put(
-            JSONObject()
-                .put("title", title)
-                .put("content", content)
-                .put("createdAt", System.currentTimeMillis())
-        )
+        val lastIndex = entries.length() - 1
+        val lastEntry = entries.optJSONObject(lastIndex)
+        val entry = JSONObject()
+            .put("title", title)
+            .put("content", content)
+            .put("createdAt", System.currentTimeMillis())
+
+        if (lastEntry != null && lastEntry.getString("title") == title &&
+            lastEntry.getString("content") == content
+        ) {
+            entries.put(lastIndex, entry)
+        } else {
+            entries.put(entry)
+        }
         preferences.edit().putString(ENTRIES_KEY, entries.toString()).apply()
     }
 
