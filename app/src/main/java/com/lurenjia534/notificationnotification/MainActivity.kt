@@ -100,6 +100,10 @@ fun AppUI() {
             historyStore.clear()
             history = emptyList()
         },
+        onDelete = { id ->
+            historyStore.delete(id)
+            history = historyStore.read()
+        },
     ) {
         Box(modifier = Modifier.fillMaxSize()) {
             NotificationForm { title, content ->

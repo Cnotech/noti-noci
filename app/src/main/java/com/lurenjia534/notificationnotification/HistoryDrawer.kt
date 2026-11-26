@@ -1,7 +1,6 @@
 package com.lurenjia534.notificationnotification
 
 import androidx.activity.compose.BackHandler
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -25,14 +24,12 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalDrawerSheet
 import androidx.compose.material3.ModalNavigationDrawer
-import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.runtime.State
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -43,20 +40,15 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.text.SpanStyle
-import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import java.time.Instant
 import java.time.ZonedDateTime
 
 @Composable
@@ -66,6 +58,7 @@ internal fun HistoryDrawer(
     cleanupSettings: HistoryCleanupSettings,
     onSaveCleanupSettings: (HistoryCleanupSettings) -> Unit,
     onClear: () -> Unit,
+    onDelete: (String) -> Unit,
     content: @Composable () -> Unit,
 ) {
     val contentDirection = LocalLayoutDirection.current
@@ -91,6 +84,7 @@ internal fun HistoryDrawer(
                             history = history,
                             drawerOpen = drawerState.isOpen,
                             onClear = onClear,
+                            onDelete = onDelete,
                             onOpenCleanupSettings = { showCleanupSettings = true },
                         )
                     }
@@ -118,6 +112,7 @@ private fun HistoryList(
     history: List<HistoryEntry>,
     drawerOpen: Boolean,
     onClear: () -> Unit,
+    onDelete: (String) -> Unit,
     onOpenCleanupSettings: () -> Unit,
 ) {
     Row(
@@ -160,7 +155,7 @@ private fun HistoryList(
             verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
             for ((date, entries) in historyByDay) {
-                item(key = date.toString()) {
+                item(key = "day-$date") {
                     Text(
                         text = formatHistoryDay(date, today),
                         modifier = Modifier
@@ -170,7 +165,9 @@ private fun HistoryList(
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                 }
-                items(entries) { entry -> HistoryCard(entry, now) }
+                items(entries, key = { it.id }) { entry ->
+                    HistoryCard(entry = entry, now = now, onDelete = { onDelete(entry.id) })
+                }
             }
         }
     }
@@ -225,48 +222,5 @@ private fun HistoryCleanupDialog(
             }
         },
         dismissButton = { TextButton(onClick = onDismiss) { Text("取消") } },
-    )
-}
-
-@Composable
-private fun HistoryCard(entry: HistoryEntry, now: State<ZonedDateTime>) {
-    OutlinedCard(modifier = Modifier.fillMaxWidth()) {
-        Column(
-            modifier = Modifier.padding(12.dp),
-            verticalArrangement = Arrangement.spacedBy(4.dp),
-        ) {
-            if (entry.title.isNotEmpty()) {
-                Text(entry.title, style = MaterialTheme.typography.titleMedium)
-            }
-            if (entry.content.isNotEmpty()) {
-                Text(entry.content, style = MaterialTheme.typography.bodyMedium)
-            }
-            HistoryTimestamp(entry.createdAt, now)
-        }
-    }
-}
-
-@Composable
-private fun HistoryTimestamp(createdAt: Long, now: State<ZonedDateTime>) {
-    val displayTime = now.value
-    val time = remember(createdAt, displayTime.zone) {
-        Instant.ofEpochMilli(createdAt).atZone(displayTime.zone)
-    }
-    val relative = formatHistoryRelativeTime(time, displayTime)
-    val absolute = remember(time) { formatHistoryAbsoluteTime(time) }
-    val absoluteTimeColor = if (isSystemInDarkTheme()) Color(0xFF999999) else Color(0xFF666666)
-    val label = remember(relative, absolute, absoluteTimeColor) {
-        buildAnnotatedString {
-            append(relative)
-            append('\u00A0') // Keep the opening parenthesis next to the relative time.
-            withStyle(SpanStyle(color = absoluteTimeColor)) {
-                append("($absolute)")
-            }
-        }
-    }
-    Text(
-        text = label,
-        style = MaterialTheme.typography.bodySmall,
-        color = MaterialTheme.colorScheme.onSurface,
     )
 }

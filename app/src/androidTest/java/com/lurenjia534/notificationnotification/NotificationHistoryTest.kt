@@ -9,6 +9,7 @@ import org.json.JSONArray
 import org.json.JSONObject
 import org.junit.After
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNotEquals
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -69,6 +70,20 @@ class NotificationHistoryTest {
         history.clear()
 
         assertEquals(settings, NotificationHistory(context).cleanupSettings())
+    }
+
+    @Test
+    fun deletingOneLegacyDuplicatePreservesOtherRecords() {
+        seedHistory(8, 6, 8)
+        val history = NotificationHistory(context).read()
+        assertNotEquals(history.first().id, history.last().id)
+
+        val reopenedHistory = NotificationHistory(context)
+        assertEquals(history, reopenedHistory.read())
+        reopenedHistory.delete(history.last().id)
+        reopenedHistory.delete(history.last().id)
+
+        assertEquals(history.dropLast(1), reopenedHistory.read())
     }
 
     private fun seedHistory(vararg agesInDays: Int) {

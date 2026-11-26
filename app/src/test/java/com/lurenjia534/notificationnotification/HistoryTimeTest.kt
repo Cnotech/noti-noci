@@ -22,9 +22,9 @@ class HistoryTimeTest {
 
     @Test
     fun historyGroupsUseLocalMidnightAndListNewestDaysFirst() {
-        val yesterday = HistoryEntry("Yesterday", "", Instant.parse("2026-11-25T15:59:59Z").toEpochMilli())
-        val firstToday = HistoryEntry("First today", "", Instant.parse("2026-11-25T16:00:00Z").toEpochMilli())
-        val latestToday = HistoryEntry("Latest today", "", Instant.parse("2026-11-26T01:00:00Z").toEpochMilli())
+        val yesterday = HistoryEntry("1", "Yesterday", "", Instant.parse("2026-11-25T15:59:59Z").toEpochMilli())
+        val firstToday = HistoryEntry("2", "First today", "", Instant.parse("2026-11-25T16:00:00Z").toEpochMilli())
+        val latestToday = HistoryEntry("3", "Latest today", "", Instant.parse("2026-11-26T01:00:00Z").toEpochMilli())
         val groups = groupHistoryByDay(listOf(latestToday, yesterday, firstToday), ZoneId.of("Asia/Shanghai"))
 
         assertEquals(listOf(LocalDate.of(2026, 11, 26), LocalDate.of(2026, 11, 25)), groups.keys.toList())

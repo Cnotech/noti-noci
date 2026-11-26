@@ -3,9 +3,11 @@ package com.lurenjia534.notificationnotification
 import android.content.Context
 import org.json.JSONArray
 import org.json.JSONObject
+import java.util.UUID
 import java.util.concurrent.TimeUnit
 
 internal data class HistoryEntry(
+    val id: String,
     val title: String,
     val content: String,
     val createdAt: Long,
@@ -29,6 +31,7 @@ internal class NotificationHistory(context: Context) {
         val lastIndex = entries.length() - 1
         val lastEntry = entries.optJSONObject(lastIndex)
         val entry = JSONObject()
+            .put("id", UUID.randomUUID().toString())
             .put("title", title)
             .put("content", content)
             .put("createdAt", now)
@@ -45,16 +48,39 @@ internal class NotificationHistory(context: Context) {
 
     fun read(): List<HistoryEntry> = synchronized(lock) {
         val entries = pruneExpiredEntries()
-        buildList {
+        var idsAdded = false
+        val history = buildList {
             for (index in entries.length() - 1 downTo 0) {
                 val entry = entries.getJSONObject(index)
+                val id = entry.optString("id").ifEmpty {
+                    UUID.randomUUID().toString().also { id ->
+                        entry.put("id", id)
+                        idsAdded = true
+                    }
+                }
                 add(
                     HistoryEntry(
+                        id = id,
                         title = entry.getString("title"),
                         content = entry.getString("content"),
                         createdAt = entry.getLong("createdAt"),
                     )
                 )
+            }
+        }
+        if (idsAdded) writeEntries(entries)
+        history
+    }
+
+    fun delete(id: String) {
+        synchronized(lock) {
+            val entries = readEntries()
+            for (index in entries.length() - 1 downTo 0) {
+                if (entries.getJSONObject(index).optString("id") == id) {
+                    entries.remove(index)
+                    writeEntries(entries)
+                    return
+                }
             }
         }
     }
