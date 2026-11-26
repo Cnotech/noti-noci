@@ -33,6 +33,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.State
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.produceState
@@ -45,6 +46,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.input.KeyboardType
@@ -149,11 +152,26 @@ private fun HistoryList(
                 value = ZonedDateTime.now()
             }
         }
+        val today by remember(now) { derivedStateOf { now.value.toLocalDate() } }
+        val zone by remember(now) { derivedStateOf { now.value.zone } }
+        val historyByDay = remember(history, zone) { groupHistoryByDay(history, zone) }
         LazyColumn(
             contentPadding = PaddingValues(start = 16.dp, end = 16.dp, bottom = 16.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
-            items(history) { entry -> HistoryCard(entry, now) }
+            for ((date, entries) in historyByDay) {
+                item(key = date.toString()) {
+                    Text(
+                        text = formatHistoryDay(date, today),
+                        modifier = Modifier
+                            .padding(start = 4.dp, top = 4.dp)
+                            .semantics { heading() },
+                        style = MaterialTheme.typography.titleSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+                items(entries) { entry -> HistoryCard(entry, now) }
+            }
         }
     }
 }

@@ -1,7 +1,10 @@
 package com.lurenjia534.notificationnotification
 
 import java.time.Duration
+import java.time.Instant
+import java.time.LocalDate
 import java.time.YearMonth
+import java.time.ZoneId
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
@@ -13,6 +16,21 @@ private const val MILLIS_PER_MINUTE = 60_000.0
 private const val MILLIS_PER_HOUR = 60 * MILLIS_PER_MINUTE
 private const val MILLIS_PER_DAY = 24 * MILLIS_PER_HOUR
 private val absoluteTimeFormatter = DateTimeFormatter.ofPattern("uuuu年M月d日 HH:mm", Locale.ROOT)
+private val absoluteDateFormatter = DateTimeFormatter.ofPattern("uuuu年M月d日", Locale.ROOT)
+
+internal fun groupHistoryByDay(history: List<HistoryEntry>, zone: ZoneId): Map<LocalDate, List<HistoryEntry>> =
+    history.groupBy { entry -> Instant.ofEpochMilli(entry.createdAt).atZone(zone).toLocalDate() }
+        .toSortedMap(reverseOrder())
+
+internal fun formatHistoryDay(date: LocalDate, today: LocalDate): String {
+    val daysAgo = ChronoUnit.DAYS.between(date, today)
+    return when (daysAgo) {
+        0L -> "今天"
+        1L -> "昨天"
+        in 2L..7L -> "$daysAgo 天前"
+        else -> absoluteDateFormatter.format(date)
+    }
+}
 
 internal fun formatHistoryAbsoluteTime(time: ZonedDateTime): String = absoluteTimeFormatter.format(time)
 

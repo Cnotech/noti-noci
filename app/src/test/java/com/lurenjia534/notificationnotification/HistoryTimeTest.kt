@@ -3,11 +3,33 @@ package com.lurenjia534.notificationnotification
 import org.junit.Assert.assertEquals
 import org.junit.Test
 import java.time.Instant
+import java.time.LocalDate
 import java.time.ZoneId
 import java.time.ZonedDateTime
 
 class HistoryTimeTest {
     private val now = ZonedDateTime.parse("2026-11-26T12:00:00+08:00")
+
+    @Test
+    fun historyDayUsesRelativeLabelsThroughSevenDays() {
+        val today = now.toLocalDate()
+        assertEquals("今天", formatHistoryDay(today, today))
+        assertEquals("昨天", formatHistoryDay(today.minusDays(1), today))
+        assertEquals("2 天前", formatHistoryDay(today.minusDays(2), today))
+        assertEquals("7 天前", formatHistoryDay(today.minusDays(7), today))
+        assertEquals("2026年11月18日", formatHistoryDay(today.minusDays(8), today))
+    }
+
+    @Test
+    fun historyGroupsUseLocalMidnightAndListNewestDaysFirst() {
+        val yesterday = HistoryEntry("Yesterday", "", Instant.parse("2026-11-25T15:59:59Z").toEpochMilli())
+        val firstToday = HistoryEntry("First today", "", Instant.parse("2026-11-25T16:00:00Z").toEpochMilli())
+        val latestToday = HistoryEntry("Latest today", "", Instant.parse("2026-11-26T01:00:00Z").toEpochMilli())
+        val groups = groupHistoryByDay(listOf(latestToday, yesterday, firstToday), ZoneId.of("Asia/Shanghai"))
+
+        assertEquals(listOf(LocalDate.of(2026, 11, 26), LocalDate.of(2026, 11, 25)), groups.keys.toList())
+        assertEquals(listOf(listOf(latestToday, firstToday), listOf(yesterday)), groups.values.toList())
+    }
 
     @Test
     fun relativeTimeUsesOneMinuteForJustNowAndRoundsLargerUnits() {
