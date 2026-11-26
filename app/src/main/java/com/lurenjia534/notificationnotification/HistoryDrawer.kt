@@ -1,7 +1,7 @@
 package com.lurenjia534.notificationnotification
 
-import android.text.format.DateUtils
 import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -32,20 +32,29 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.State
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.produceState
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import java.time.Instant
+import java.time.ZonedDateTime
 
 @Composable
 internal fun HistoryDrawer(
@@ -75,7 +84,12 @@ internal fun HistoryDrawer(
                         .fillMaxWidth(0.9f),
                 ) {
                     CompositionLocalProvider(LocalLayoutDirection provides contentDirection) {
-                        HistoryList(history, onClear, onOpenCleanupSettings = { showCleanupSettings = true })
+                        HistoryList(
+                            history = history,
+                            drawerOpen = drawerState.isOpen,
+                            onClear = onClear,
+                            onOpenCleanupSettings = { showCleanupSettings = true },
+                        )
                     }
                 }
             },
@@ -97,7 +111,12 @@ internal fun HistoryDrawer(
 }
 
 @Composable
-private fun HistoryList(history: List<HistoryEntry>, onClear: () -> Unit, onOpenCleanupSettings: () -> Unit) {
+private fun HistoryList(
+    history: List<HistoryEntry>,
+    drawerOpen: Boolean,
+    onClear: () -> Unit,
+    onOpenCleanupSettings: () -> Unit,
+) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -123,11 +142,18 @@ private fun HistoryList(history: List<HistoryEntry>, onClear: () -> Unit, onOpen
             Text("暂无历史记录", color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
     } else {
+        val now = produceState(ZonedDateTime.now(), drawerOpen) {
+            value = ZonedDateTime.now()
+            while (drawerOpen) {
+                delay(1_000)
+                value = ZonedDateTime.now()
+            }
+        }
         LazyColumn(
             contentPadding = PaddingValues(start = 16.dp, end = 16.dp, bottom = 16.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
-            items(history) { entry -> HistoryCard(entry) }
+            items(history) { entry -> HistoryCard(entry, now) }
         }
     }
 }
@@ -185,12 +211,7 @@ private fun HistoryCleanupDialog(
 }
 
 @Composable
-private fun HistoryCard(entry: HistoryEntry) {
-    val time = DateUtils.formatDateTime(
-        LocalContext.current,
-        entry.createdAt,
-        DateUtils.FORMAT_SHOW_YEAR or DateUtils.FORMAT_SHOW_DATE or DateUtils.FORMAT_SHOW_TIME,
-    )
+private fun HistoryCard(entry: HistoryEntry, now: State<ZonedDateTime>) {
     OutlinedCard(modifier = Modifier.fillMaxWidth()) {
         Column(
             modifier = Modifier.padding(12.dp),
@@ -202,11 +223,32 @@ private fun HistoryCard(entry: HistoryEntry) {
             if (entry.content.isNotEmpty()) {
                 Text(entry.content, style = MaterialTheme.typography.bodyMedium)
             }
-            Text(
-                text = time,
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
+            HistoryTimestamp(entry.createdAt, now)
         }
     }
+}
+
+@Composable
+private fun HistoryTimestamp(createdAt: Long, now: State<ZonedDateTime>) {
+    val displayTime = now.value
+    val time = remember(createdAt, displayTime.zone) {
+        Instant.ofEpochMilli(createdAt).atZone(displayTime.zone)
+    }
+    val relative = formatHistoryRelativeTime(time, displayTime)
+    val absolute = remember(time) { formatHistoryAbsoluteTime(time) }
+    val absoluteTimeColor = if (isSystemInDarkTheme()) Color(0xFF999999) else Color(0xFF666666)
+    val label = remember(relative, absolute, absoluteTimeColor) {
+        buildAnnotatedString {
+            append(relative)
+            append('\u00A0') // Keep the opening parenthesis next to the relative time.
+            withStyle(SpanStyle(color = absoluteTimeColor)) {
+                append("($absolute)")
+            }
+        }
+    }
+    Text(
+        text = label,
+        style = MaterialTheme.typography.bodySmall,
+        color = MaterialTheme.colorScheme.onSurface,
+    )
 }

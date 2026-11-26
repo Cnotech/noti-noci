@@ -1,0 +1,51 @@
+package com.lurenjia534.notificationnotification
+
+import org.junit.Assert.assertEquals
+import org.junit.Test
+import java.time.Instant
+import java.time.ZoneId
+import java.time.ZonedDateTime
+
+class HistoryTimeTest {
+    private val now = ZonedDateTime.parse("2026-11-26T12:00:00+08:00")
+
+    @Test
+    fun relativeTimeUsesOneMinuteForJustNowAndRoundsLargerUnits() {
+        val examples = listOf(
+            now.minusSeconds(59) to "刚刚",
+            now.minusMinutes(1) to "1分钟前",
+            now.minusSeconds(90) to "2分钟前",
+            now.minusMinutes(44).minusSeconds(29) to "44分钟前",
+            now.minusMinutes(44).minusSeconds(30) to "1小时前",
+            now.minusMinutes(90) to "2小时前",
+            now.minusHours(21).minusMinutes(30) to "1天前",
+            now.minusHours(36) to "2天前",
+            now.minusDays(25).minusHours(12) to "1个月前",
+            now.minusMonths(6) to "6个月前",
+            now.minusMonths(11) to "1年前",
+            now.minusMonths(18) to "2年前",
+            now.plusHours(3) to "3小时后",
+        )
+
+        for ((time, expected) in examples) {
+            assertEquals(time.toString(), expected, formatHistoryRelativeTime(time, now))
+        }
+    }
+
+    @Test
+    fun relativeTimeHandlesShortMonthsAndDaylightSavingTime() {
+        val january = ZonedDateTime.parse("2026-01-31T12:00:00+08:00")
+        val march = ZonedDateTime.parse("2026-03-18T12:00:00+08:00")
+        assertEquals("2个月前", formatHistoryRelativeTime(january, march))
+
+        val beforeClockChange = ZonedDateTime.parse("2026-03-07T00:00:00-05:00[America/New_York]")
+        val afterClockChange = beforeClockChange.plusDays(3).plusHours(12)
+        assertEquals("4天前", formatHistoryRelativeTime(beforeClockChange, afterClockChange))
+    }
+
+    @Test
+    fun absoluteTimeUsesTheDeviceZoneAndTwentyFourHourClock() {
+        val time = Instant.parse("2026-01-02T07:04:00Z").atZone(ZoneId.of("Asia/Shanghai"))
+        assertEquals("2026年1月2日 15:04", formatHistoryAbsoluteTime(time))
+    }
+}
