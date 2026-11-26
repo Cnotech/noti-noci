@@ -61,6 +61,7 @@ const val CONTENT_KEY = "content"
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        HistoryCleanupJob.updateSchedule(this, NotificationHistory(this).cleanupSettings().enabled)
         setContent {
             NotificationNotificationTheme {
                 Surface(
@@ -81,12 +82,20 @@ fun AppUI() {
     val focusManager = LocalFocusManager.current
     val historyStore = remember(context) { NotificationHistory(context) }
     var history by remember(historyStore) { mutableStateOf(historyStore.read()) }
+    var cleanupSettings by remember(historyStore) { mutableStateOf(historyStore.cleanupSettings()) }
     val drawerState = rememberDrawerState(DrawerValue.Closed)
     val scope = rememberCoroutineScope()
 
     HistoryDrawer(
         drawerState = drawerState,
         history = history,
+        cleanupSettings = cleanupSettings,
+        onSaveCleanupSettings = { settings ->
+            historyStore.saveCleanupSettings(settings)
+            HistoryCleanupJob.updateSchedule(context, settings.enabled)
+            cleanupSettings = settings
+            history = historyStore.read()
+        },
         onClear = {
             historyStore.clear()
             history = emptyList()

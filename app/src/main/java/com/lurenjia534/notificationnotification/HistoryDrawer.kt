@@ -13,21 +13,36 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.selection.toggleable
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.DrawerDefaults
 import androidx.compose.material3.DrawerState
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalDrawerSheet
 import androidx.compose.material3.ModalNavigationDrawer
 import androidx.compose.material3.OutlinedCard
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
@@ -36,11 +51,14 @@ import kotlinx.coroutines.launch
 internal fun HistoryDrawer(
     drawerState: DrawerState,
     history: List<HistoryEntry>,
+    cleanupSettings: HistoryCleanupSettings,
+    onSaveCleanupSettings: (HistoryCleanupSettings) -> Unit,
     onClear: () -> Unit,
     content: @Composable () -> Unit,
 ) {
     val contentDirection = LocalLayoutDirection.current
     val scope = rememberCoroutineScope()
+    var showCleanupSettings by rememberSaveable { mutableStateOf(false) }
     BackHandler(enabled = drawerState.isOpen) {
         scope.launch { drawerState.close() }
     }
@@ -57,7 +75,7 @@ internal fun HistoryDrawer(
                         .fillMaxWidth(0.9f),
                 ) {
                     CompositionLocalProvider(LocalLayoutDirection provides contentDirection) {
-                        HistoryList(history, onClear)
+                        HistoryList(history, onClear, onOpenCleanupSettings = { showCleanupSettings = true })
                     }
                 }
             },
@@ -65,10 +83,21 @@ internal fun HistoryDrawer(
             CompositionLocalProvider(LocalLayoutDirection provides contentDirection, content = content)
         }
     }
+
+    if (showCleanupSettings) {
+        HistoryCleanupDialog(
+            settings = cleanupSettings,
+            onDismiss = { showCleanupSettings = false },
+            onSave = { settings ->
+                onSaveCleanupSettings(settings)
+                showCleanupSettings = false
+            },
+        )
+    }
 }
 
 @Composable
-private fun HistoryList(history: List<HistoryEntry>, onClear: () -> Unit) {
+private fun HistoryList(history: List<HistoryEntry>, onClear: () -> Unit, onOpenCleanupSettings: () -> Unit) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -81,6 +110,9 @@ private fun HistoryList(history: List<HistoryEntry>, onClear: () -> Unit) {
             modifier = Modifier.weight(1f),
             style = MaterialTheme.typography.titleLarge,
         )
+        IconButton(onClick = onOpenCleanupSettings) {
+            Icon(Icons.Default.Settings, contentDescription = "历史自动清理设置")
+        }
         TextButton(onClick = onClear, enabled = history.isNotEmpty()) {
             Text("一键清空")
         }
@@ -98,6 +130,58 @@ private fun HistoryList(history: List<HistoryEntry>, onClear: () -> Unit) {
             items(history) { entry -> HistoryCard(entry) }
         }
     }
+}
+
+@Composable
+private fun HistoryCleanupDialog(
+    settings: HistoryCleanupSettings,
+    onDismiss: () -> Unit,
+    onSave: (HistoryCleanupSettings) -> Unit,
+) {
+    var enabled by rememberSaveable { mutableStateOf(settings.enabled) }
+    var daysText by rememberSaveable { mutableStateOf(settings.retentionDays.toString()) }
+    val retentionDays = daysText.toIntOrNull()?.takeIf { it > 0 }
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("历史自动清理") },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .toggleable(value = enabled, role = Role.Switch, onValueChange = { enabled = it }),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Text("自动清理过期历史")
+                    Switch(checked = enabled, onCheckedChange = null)
+                }
+                if (enabled) {
+                    OutlinedTextField(
+                        modifier = Modifier.fillMaxWidth(),
+                        value = daysText,
+                        onValueChange = { value ->
+                            if (value.all(Char::isDigit)) daysText = value
+                        },
+                        label = { Text("保留天数") },
+                        singleLine = true,
+                        isError = daysText.isNotEmpty() && retentionDays == null,
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                    )
+                }
+            }
+        },
+        confirmButton = {
+            TextButton(
+                onClick = { onSave(HistoryCleanupSettings(enabled, retentionDays ?: settings.retentionDays)) },
+                enabled = !enabled || retentionDays != null,
+            ) {
+                Text("保存")
+            }
+        },
+        dismissButton = { TextButton(onClick = onDismiss) { Text("取消") } },
+    )
 }
 
 @Composable
